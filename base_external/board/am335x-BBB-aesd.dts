@@ -44,6 +44,11 @@
 	pinctrl-0 = <&i2c1_aesd_pins>;
 	clock-frequency = <100000>;
 	status = "okay";
+
+	  	rtc@68 {
+  		compatible = "maxim,ds3231";
+  		reg = <0x68>;
+  	};
 };
 
 &uart4 {
@@ -56,3 +61,5 @@
 	pinctrl-names = "default";
 	pinctrl-0 = <&parallel_bus_pins>;
 };
+
+/* https://claude.ai/chat/db6dcf0a-4540-4f63-9c76-6a0ade15652a */
