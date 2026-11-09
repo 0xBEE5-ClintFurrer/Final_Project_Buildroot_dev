@@ -45,10 +45,19 @@
 	clock-frequency = <100000>;
 	status = "okay";
 
-	  	rtc@68 {
+	rtc@68 {
   		compatible = "maxim,ds3231";
   		reg = <0x68>;
   	};
+
+	gpio_expander: gpio@20 {
+		compatible = "microchip,mcp23017";
+		reg = <0x20>;
+		gpio-controller;
+		#gpio-cells = <2>;
+		interrupt-controller;
+		#interrupt-cells = <2>;
+	};
 };
 
 &uart4 {
