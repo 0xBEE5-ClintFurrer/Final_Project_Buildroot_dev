@@ -1,7 +1,8 @@
 /dts-v1/;
 #include "am335x-boneblack.dts"
 #include <dt-bindings/pinctrl/am33xx.h>
-
+#include <dt-bindings/gpio/gpio.h>
+#include <dt-bindings/interrupt-controller/irq.h>
 
 /* Free the LCD/HDMI pins used by the parallel bus */
 &lcdc     { status = "disabled"; };
@@ -22,6 +23,12 @@
 		>;
 	};
 
+	rtc_int_pins: rtc-int-pins {
+		pinctrl-single,pins = <
+			AM33XX_PADCONF(AM335X_PIN_GPMC_BEN1, PIN_INPUT_PULLUP, MUX_MODE7) /* P9.12 gpio1_28 */
+		>;
+	};
+
     parallel_bus_pins: parallel-bus-pins {
 		pinctrl-single,pins = <
             AM33XX_IOPAD(0x8a0, PIN_OUTPUT | MUX_MODE7)		/* D0 P8.45 gpio2_6  */
@@ -32,9 +39,9 @@
 			AM33XX_IOPAD(0x8b4, PIN_OUTPUT | MUX_MODE7)		/* D5 P8.42 gpio2_11 */
 			AM33XX_IOPAD(0x8b8, PIN_OUTPUT | MUX_MODE7)		/* D6 P8.39 gpio2_12 */
 			AM33XX_IOPAD(0x8bc, PIN_OUTPUT | MUX_MODE7)		/* D7 P8.40 gpio2_13 */
-			AM33XX_IOPAD(0x8c0, PIN_OUTPUT_PULLDOWN | MUX_MODE7)		/* lcd_rs p8.37 was lcd8*/
-			AM33XX_IOPAD(0x8c4, PIN_OUTPUT_PULLDOWN | MUX_MODE7)		/* lcd_r/w   p8.38  was lcd9*/
-			AM33XX_IOPAD(0x8c8, PIN_OUTPUT_PULLDOWN | MUX_MODE7)		/* lcd_e   p8.36 was lcd_data10 */
+			AM33XX_IOPAD(0x8c0, PIN_OUTPUT_PULLDOWN | MUX_MODE7)		/* lcd_rs p8.37 was lcd8  gpio2_14 */
+			AM33XX_IOPAD(0x8c4, PIN_OUTPUT_PULLDOWN | MUX_MODE7)		/* lcd_r/w   p8.38  was lcd9 gpio2_15 */
+			AM33XX_IOPAD(0x8c8, PIN_OUTPUT_PULLDOWN | MUX_MODE7)		/* lcd_e   p8.36 was lcd_data10 gpio2_16 */
 		>;
 	};
 };
@@ -48,6 +55,11 @@
 	rtc@68 {
   		compatible = "maxim,ds3231";
   		reg = <0x68>;
+		pinctrl-names = "default";
+		pinctrl-0 = <&rtc_int_pins>;
+		interrupt-parent = <&gpio1>;
+		interrupts = <28 IRQ_TYPE_EDGE_FALLING>;
+		wakeup-source;
   	};
 
 	gpio_expander: gpio@20 {
@@ -65,10 +77,25 @@
 	pinctrl-0 = <&uart4_aesd_pins>;
 	status = "okay";
 };
+/ {
+	display-controller {
+		compatible = "hit,hd44780";
+		pinctrl-names = "default";
+		pinctrl-0 = <&parallel_bus_pins>;
 
-&gpio2 {
-	pinctrl-names = "default";
-	pinctrl-0 = <&parallel_bus_pins>;
+		data-gpios = <&gpio2 6 GPIO_ACTIVE_HIGH>,
+					<&gpio2 7 GPIO_ACTIVE_HIGH>,
+					<&gpio2 8 GPIO_ACTIVE_HIGH>,
+					<&gpio2 9 GPIO_ACTIVE_HIGH>,
+					<&gpio2 10 GPIO_ACTIVE_HIGH>,
+					<&gpio2 11 GPIO_ACTIVE_HIGH>,
+					<&gpio2 12 GPIO_ACTIVE_HIGH>,
+					<&gpio2 13 GPIO_ACTIVE_HIGH>;
+		rs-gpios = <&gpio2 14 GPIO_ACTIVE_HIGH>;
+		enable-gpios = <&gpio2 16 GPIO_ACTIVE_HIGH>;
+
+		display-height-chars = <2>;
+		display-width-chars = <16>;
+	};
 };
-
 /* https://claude.ai/chat/db6dcf0a-4540-4f63-9c76-6a0ade15652a */
